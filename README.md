@@ -43,7 +43,7 @@ Concurrency support is built into Clojure. This exercise will cover **atoms** an
 For now, just see [Clojure concurrency](http://clojure.org/concurrent_programming)
 
 
-Creating an account
+Withdrawals and deposits
 -------
 
 Data structures in Clojure are immutable. We can't just set up an account "variable" and have multiple threads access it. To support multiple threads manipulating the same data, Clojure provides atoms. An atom is a wrapper to hold a Clojure (immutable) data structure. 
@@ -125,12 +125,12 @@ Either way, the test should pass. Moving on to write the test for debit.
 ```clojure
 
 (deftest test-debit
-  (debit my-checking-account 60)
-  (is (= -60 (balance checking))))
+  (debit my-checking-account 100)
+  (is (= -100 (balance checking))))
 
 ```
 
-Hmm, we probably shouldn't allow negative balances. But let's implement this anyway. The implementation should be quite similar to credit.
+Hmm, we probably shouldn't allow negative balances. But let's implement debit first. The implementation should be quite similar to credit.
 
 ```clojure
 
@@ -169,8 +169,8 @@ Now we can update our tests to use the accounts created in setup. We can delete 
   (is (= 160 (balance checking))))
 
 (deftest test-debit
-  (debit checking 60)
-  (is (= 40 (balance checking))))
+  (debit checking 100)
+  (is (= 0 (balance checking))))
   
 ```
 
@@ -182,7 +182,7 @@ We shouldn't allow overdraft. Let's write a test that expects an exception if th
 
 (deftest test-overdraw-exception
   (is (thrown? Exception
-        (debit checking 110))))
+        (debit checking 101))))
         
 ```
 
@@ -216,3 +216,49 @@ All the transactions happen in parallel through the magic of pmap.
 
 This test passes because we ensured synchronization of our data value, by using an atom.
 
+Transfers
+-------
+
+Let's get to the fun part! Writing the test for transfer:
+
+```clojure
+
+(deftest test-transfer
+  (transfer savings checking 25)
+  (is (= 75 (balance savings)))
+  (is (= 125  (balance checking))))
+  
+```
+
+We don't have a transfer function. Can you write it in terms of debit and credit?
+
+```clojure
+
+(defn transfer [from to amount]
+  (debit from amount)
+  (credit to amount))
+  
+```
+
+That's pretty easy. Oh, but we don't want to allow the transfer if it would cause an overdraft. Let's have it just do nothing in that case.
+
+```clojure
+
+(deftest test-no-transfer-if-overdrawn
+  (transfer checking savings 101)
+  (is (= 100 (balance savings)))
+  (is (= 100 (balance checking))))
+  
+```
+
+And the implementation? We have a balance function, perhaps we ought to compare the balance in the account with the amount we're trying to withdraw. Can you implement it?
+
+
+```clojure
+
+(defn transfer [from to amount]
+  (when (>= (balance from) amount)
+    (debit from amount)
+    (credit to amount)))
+    
+```
