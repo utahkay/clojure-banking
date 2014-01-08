@@ -29,7 +29,7 @@ Up and Running
 You should see 1 failing test. Leiningen generated a skeleton project for you with one sample (failing) test.
 
 
-The Problem
+The Banker's Dilemma
 -------
 
 Create functions to credit, debit, and transfer between bank accounts. They must not be vulnerable to race conditions.
