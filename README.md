@@ -162,7 +162,7 @@ Clojure-test support "fixtures" for test setup. Note: A fixture will apply to al
 
 Now we can update our tests to use the accounts created in setup. We can delete my-checking-account.
 
-```
+```clojure
 
 (deftest test-credit
   (credit checking 60)
@@ -173,3 +173,46 @@ Now we can update our tests to use the accounts created in setup. We can delete 
   (is (= 40 (balance checking))))
   
 ```
+
+Yay, our tests pass again!
+
+We shouldn't allow overdraft. Let's write a test that expects an exception if this happens:
+
+```clojure
+
+(deftest test-overdraw-exception
+  (is (thrown? Exception
+        (debit checking 110))))
+        
+```
+
+You can look up how to throw an exception in Clojure, and implement this behavior. 
+
+Got it? Here's what I have:
+
+```clojure
+
+(defn debit [account amount]
+  (when (> amount (balance account))
+    (throw (Exception. "Insufficient Funds")))
+  (credit account (- amount)))
+  
+```
+
+Now I want to demonstrate that we have gotten our concurrency for free, just by using an atom. Here's a test that credits our checking account with $6 and debits it $5, doing this 100 times. Thus we're $1 ahead each time, so after all is said and done our account balance should be $100 greater than when we started. (Hopefully this is how we manage our moeny in real life...)
+
+All the transactions happen in parallel through the magic of pmap.
+
+```clojure
+
+(deftest test-concurrent-credits-debits
+  (doall (pmap #(do
+                  (credit checking (+ % 1))
+                  (debit checking %))
+               (take 100 (repeat 5))))
+  (is (= 200 (balance checking))))
+  
+```
+
+This test passes because we ensured synchronization of our data value, by using an atom.
+
