@@ -40,7 +40,7 @@ Concurrency in Clojure
 
 Concurrency support is built into Clojure. This exercise will cover **atoms** and **refs**.
 
-For now, just see [Clojure concurrency](http://clojure.org/concurrent_programming)
+It would be great if I had time to write about concurrency here. For now, just see [Clojure concurrency](http://clojure.org/concurrent_programming)
 
 
 Withdrawals and deposits
