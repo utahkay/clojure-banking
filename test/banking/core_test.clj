@@ -2,53 +2,53 @@
   (:require [clojure.test :refer :all]
             [banking.core :refer :all]))
 
-(def accounts (atom {:checking 10 :savings 10}))
+(def checking (make-account))
+(def savings (make-account))
 
 (defn my-fixture [f]
-  (reset! accounts {:checking 10 :savings 10})
+  (reset! checking 10)
+  (reset! savings 10)
   (f))
 
 (use-fixtures :each my-fixture)
 
-(deftest credit-amount-to-account
-  (swap! accounts credit :checking 6)
-  (is (= 16 (get-balance @accounts :checking))))
+(deftest test-credit
+  (credit checking 6)
+  (is (= 16 (balance checking))))
 
-(deftest debit-amount-from-account
-  (swap! accounts debit :checking 6)
-  (is (= 4 (get-balance @accounts :checking))))
+(deftest test-debit
+  (debit checking 6)
+  (is (= 4 (balance checking))))
 
-(deftest attempt-to-overdraw-throws-exception
+(deftest test-overdraw-exception
   (is (thrown? Exception
-        (debit @accounts :checking 11))))
+        (debit checking 11))))
 
-(deftest concurrent-access
-  (doall (pcalls
-           #(swap! accounts credit :checking 4)
-           #(swap! accounts debit :checking 5)
-           #(swap! accounts credit :checking 4)
-           #(swap! accounts debit :checking 5)
-          ))
-  (is (= 10 (get-balance @accounts :savings)))
-  (is (= 8 (get-balance @accounts :checking))))
+(deftest test-concurrent-credits-debits
+  (doall (pmap #(do
+                  (credit checking (+ % 1))
+                  (debit checking %))
+               (take 100 (repeat 5))))
+  (is (= 110 (balance checking))))
 
-(deftest transfer-from-to
-  (transfer accounts :checking :savings 5)
-  (is (= 15 (get-balance @accounts :savings)))
-  (is (= 5  (get-balance @accounts :checking))))
+(deftest test-transfer
+  (transfer savings checking 5)
+  (is (= 5 (balance savings)))
+  (is (= 15  (balance checking))))
 
-(deftest does-not-transfer-if-overdrawn
-  (transfer accounts :checking :savings 15)
-  (is (= 10 (get-balance @accounts :savings)))
-  (is (= 10 (get-balance @accounts :checking))))
+(deftest test-no-transfer-if-overdrawn
+  (transfer checking savings 15)
+  (is (= 10 (balance savings)))
+  (is (= 10 (balance checking))))
 
-;(deftest concurrent-transfers
-;  (doall (pmap #(do
-;                  (transfer accounts :checking :savings %)
-;                  (transfer accounts :savings :checking %))
-;           (take 100 (repeatedly #(rand-int 5)))))
-;  (is (= 10 (get-balance @accounts :savings)))
-;  (is (= 10 (get-balance @accounts :checking))))
+(deftest test-concurrent-transfers
+  (doall (pmap #(do
+                  (transfer checking savings %)
+                  (transfer savings checking %)
+                  )
+           (take 100 (repeatedly #(rand-int 5)))))
+  (is (= 10 (balance savings)))
+  (is (= 10 (balance checking))))
 
 
 

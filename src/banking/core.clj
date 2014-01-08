@@ -1,20 +1,24 @@
 (ns banking.core)
 
-(defn get-balance [accounts account-name]
-  (accounts account-name))
+(defn make-account []
+  (atom 0))
 
-(defn credit [accounts account-name amount]
-  (update-in accounts [account-name] #(+ % amount)))
+(defn balance [account]
+  @account)
 
-(defn debit [accounts account-name amount]
-  (when (> amount (accounts account-name))
+(defn credit [account amount]
+  (swap! account #(+ % amount)))
+
+(defn debit [account amount]
+  (when (> amount (balance account))
     (throw (Exception. "Insufficient Funds")))
-  (credit accounts account-name (- amount)))
+  (credit account (- amount)))
 
-(defn transfer [accounts-atom from to amount]
-  (when (>= (get-balance @accounts-atom from) amount)
-    (swap! accounts-atom debit from amount)
-    (swap! accounts-atom credit to amount)))
+(defn transfer [from to amount]
+  (when (>= (balance from) amount)
+    (Thread/sleep 10)
+    (debit from amount)
+    (credit to amount)))
 
 
 
