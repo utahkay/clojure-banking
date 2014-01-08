@@ -174,8 +174,34 @@ Now we can update our tests to use the accounts created in setup. We can delete 
 
 Yay, our tests pass again!
 
+We should pull those definitions out into a function, though, to make sure we're really getting fresh accounts before each test. Let's change 
 
-Moving on to write the test for debit. 
+```clojure
+
+(def checking (atom 0))
+(def savings (atom 0))
+
+```
+
+to
+
+```clojure
+
+(def checking (make-account))
+(def savings (make-account))
+
+```
+
+and define make-account in the source file:
+
+```clojure
+
+(defn make-account []
+  (atom 0))
+  
+```
+
+OK. Good. Moving on to write the test for debit. 
 
 ```clojure
 
@@ -185,12 +211,12 @@ Moving on to write the test for debit.
 
 ```
 
-You can implement it. The implementation might be quite similar to credit....
+You can implement debit. You can use the credit function we just wrote.... oh, don't peek ahead, you can do this!
 
 ```clojure
 
 (defn debit [account amount]
-  (swap! account - amount))
+  (credit account (- amount)))
   
 ```
 
@@ -326,6 +352,8 @@ Transactions
 
 This is when we need to carefully read the 4th paragraph at [Clojure concurrency](http://clojure.org/concurrent_programming). 
 
+Basically, use refs instead of atoms, and any (write) access to a ref MUST be within a transaction (dosync).
+
 OK, let's start changing our implementation to use refs. We can comment out our failing test for now:
 
 ```clojure
@@ -340,4 +368,88 @@ OK, let's start changing our implementation to use refs. We can comment out our 
 
   
 ```
+
+First we change make-account to return a ref
+
+```clojure
+
+(defn make-account []
+  (ref 0))
+  
+```
+
+We need to change our call to swap! to alter. Similar function, but swap! works on atoms and alter works on refs.
+
+```clojure
+
+(defn credit [account amount]
+  (alter account +  amount))
+
+```
+
+And in our tests, we need to change reset! to ref-set. Those Frenchmen, they have a different word for **everything**.
+
+```clojure
+
+(defn my-fixture [f]
+  (ref-set checking 100)
+  (ref-set savings 100)
+  (f))
+  
+```
+
+Now we get an java.lang.IllegalStateException: No transaction running. This is what we expected. We know refs can only be accessed within transactions. We'll make each of our three functions, credit, debit, and transfer, be a transaction.
+
+```clojure
+
+(defn credit [account amount]
+  (dosync
+    (alter account #(+ % amount))))
+
+(defn debit [account amount]
+  (dosync
+    (when (> amount (balance account))
+      (throw (Exception. "Insufficient Funds")))
+    (credit account (- amount))))
+
+(defn transfer [from to amount]
+  (dosync
+    (when (>= (balance from) amount)
+      (Thread/sleep 10)
+      (debit from amount)
+      (credit to amount))))
+      
+```
+
+Ah yes, we also have to put the test initialization inside a transaction. Aren't stack traces helpful?
+
+```clojure
+
+(defn my-fixture [f]
+  (dosync
+    (ref-set checking 100)
+    (ref-set savings 100))
+  (f))
+
+```
+
+Refactor complete! Our tests are passing. Now we can uncomment that last test...
+
+```clojure
+
+(deftest test-concurrent-transfers
+  (doall (pmap #(do
+                  (transfer checking savings %)
+                  (transfer savings checking %)
+                  )
+           (take 100 (repeatedly #(rand-int 5)))))
+  (is (= 200 (+ (balance savings) (balance checking)))))
+  
+```
+
+And it passes! Cookies and milk all around!
+
+Thank you @richhickey for providing such an elegant implementation of [STM](http://en.wikipedia.org/wiki/Software_transactional_memory) built into the language. 
+
+If you liked this exercise, why not try your hand at the [Sleeping Barber](http://en.wikipedia.org/wiki/Sleeping_barber_problem) concurrency problem? 
 
