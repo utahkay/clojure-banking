@@ -48,12 +48,50 @@ Creating an account
 
 Data structures in Clojure are immutable. We can't just set up an account "variable" and have multiple threads access it. To support multiple threads manipulating the same data, Clojure provides atoms. An atom is a wrapper to hold a Clojure (immutable) data structure. 
 
-It's called an "atom" because any write to the data is atomic, that is, one thread will have exclusive access to the data whilst writing. The programmer doesn't have to manage locks.
+It's called an "atom" because any write to the data is atomic; that is, one thread will have exclusive access to the data whilst writing. The programmer doesn't have to manage locks.
 
-You define an atom as follows. Again, the underlying data structure can be any Clojure data structure; int, list, vector, map, etc. This atom is an int:
+You can reference the value of an atom using the @ operator, e.g. @my-atom.
+
+You can change the value of an atom by passing a function to **swap!**, e.g. (swap! my-atom inc) will increment whatever value is in my-atom (assuming it's an integer value). See the docs for  [atoms](http://clojure.org/atoms) and [swap!](http://clojuredocs.org/clojure_core/clojure.core/swap!).
+
+You define an atom as follows. Again, the underlying data structure can be any Clojure data structure; int, list, vector, map, etc. We'll make our bank accounts be ints, referring to the balance of the account:
 
 ```clojure
 
-(def my-atom (atom 0))
+(def my-checking-account (atom 0))
 
 ```
+
+Let's start simple, and test that the balance of our account is zero. 
+
+```clojure
+
+(deftest test-balance
+  (is (= 0 (balance checking))))
+  
+```
+
+This won't run because we haven't defined the function "balance". See if you can define it.
+
+Here's how I did it:
+
+```clojure
+
+(defn balance [account]
+  @account)
+  
+```
+
+The parameter "account" is an atom, so we can reference its value using the @ operator.
+
+
+Let's test depositing money into an account. Let's call that "credit."
+
+```clojure
+
+(deftest test-credit
+  (credit my-checking-account 6)
+  (is (= 6 (balance checking))))
+  
+```
+
