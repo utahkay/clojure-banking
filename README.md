@@ -73,7 +73,9 @@ Let's start simple, and test that the balance of our account is zero.
 
 This won't run because we haven't defined the function "balance". See if you can define it.
 
-Here's how I did it:
+
+
+OK here's the answer:
 
 ```clojure
 
@@ -85,13 +87,89 @@ Here's how I did it:
 The parameter "account" is an atom, so we can reference its value using the @ operator.
 
 
-Let's test depositing money into an account. Let's call that "credit."
+Let's test depositing money into an account. Let's call that function "credit." Credit will take as parameters the account, and the amount to deposit.
 
 ```clojure
 
 (deftest test-credit
-  (credit my-checking-account 6)
-  (is (= 6 (balance checking))))
+  (credit my-checking-account 60)
+  (is (= 60 (balance checking))))
   
 ```
 
+Knowing how to use swap!, can you define the function credit?
+
+
+Here's one way:
+
+```clojure
+
+(defn credit [account amount]
+  (swap! account #(+ % amount)))
+  
+```
+
+We're passing swap! the account and an anonymous function that will add "amount" to whatever balance is currently in the atom.
+
+swap! allows a more elegant way to write this, however:
+
+```clojure
+
+(defn credit [account amount]
+  (swap! account + amount))
+
+```
+
+Either way, the test should pass. Moving on to write the test for debit. 
+
+```clojure
+
+(deftest test-debit
+  (debit my-checking-account 60)
+  (is (= -60 (balance checking))))
+
+```
+
+Hmm, we probably shouldn't allow negative balances. But let's implement this anyway. The implementation should be quite similar to credit.
+
+```clojure
+
+(defn debit [account amount]
+  (swap! account - amount))
+  
+```
+
+
+(Are the tests interfering with each other at this point?)
+
+It might be easier if we set up an account in a known state before each test. You can force a value into an atom using reset!, e.g. (reset! my-atom 5)
+
+Clojure-test support "fixtures" for test setup. Note: A fixture will apply to all tests in a namespace, or none. There are no classes in Clojure, so functions are organized by namespace.
+
+```clojure
+
+(def checking (atom 0))
+(def savings (atom 0))
+
+(defn my-fixture [f]
+  (reset! checking 100)
+  (reset! savings 100)
+  (f))
+
+(use-fixtures :each my-fixture)
+
+```
+
+Now we can update our tests to use the accounts created in setup. We can delete my-checking-account.
+
+```
+
+(deftest test-credit
+  (credit checking 60)
+  (is (= 160 (balance checking))))
+
+(deftest test-debit
+  (debit checking 60)
+  (is (= 40 (balance checking))))
+  
+```
