@@ -282,7 +282,9 @@ Er, as long as we don't try to overdraw an account... in that case our transfer 
   
 ```
 
-WAIT WHAT HAPPENED???!!??? We were supposed to get concurrency for free. Time to stop and think about this. Can you see why our implementation of transfer is unsafe?
+This test.... fails?
+
+WAIT WHAT HAPPENED???!!??? We were supposed to get concurrency for free. :-( :-( :-( Time to stop and think about this. Can you see why our implementation of transfer is unsafe?
 
 Hmmm....
 
@@ -296,3 +298,22 @@ We need TRANSACTIONS.
 
 Transactions
 -------
+
+This is when we need to carefully read the 4th paragraph at [Clojure concurrency](http://clojure.org/concurrent_programming). 
+
+OK, let's start changing our implementation to use refs. We can comment out our failing test for now:
+
+```clojure
+
+;(deftest test-concurrent-transfers
+;  (doall (pmap #(do
+;                  (dosync
+;                    (transfer checking savings %)
+;                    (transfer savings checking %)
+;                  ))
+;           (take 50 (repeat 2))))
+;  (is (= 100 (balance savings)))
+;  (is (= 100 (balance checking))))
+  
+```
+
