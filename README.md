@@ -4,7 +4,7 @@ A Clojure concurrency exercise.
 
 Up and Running
 -------
-* Install [Leiningen](http://leiningen.org/)
+* Install **[Leiningen](http://leiningen.org/)**
  * Put shell script/batch file somewhere on your path 
  * At the command line, run **lein self-install**
 * Create new project
@@ -28,6 +28,9 @@ Up and Running
  
 You should see 1 failing test. Leiningen generated a skeleton project for you with one sample (failing) test.
 
+* **Editor**
+ * You could use any text editor, but LightTable is pretty easy and has good Clojure syntax highlighting
+ * You can get LightTable [here](http://www.lighttable.com/)
 
 The Banker's Dilemma
 -------
