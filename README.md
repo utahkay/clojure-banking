@@ -400,7 +400,7 @@ First we change make-account to return a ref
   
 ```
 
-We need to change our call to swap! to alter. Similar function, but swap! works on atoms and alter works on refs.
+We need to change swap! to alter. Similar function, but swap! works on atoms, and alter works on refs.
 
 ```clojure
 
