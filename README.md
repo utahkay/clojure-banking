@@ -51,7 +51,7 @@ Data structures in Clojure are immutable. We can't just set up an account "varia
 It's called an "atom" because any write to the data is atomic; that is, one thread will have exclusive access to the data whilst writing. The programmer doesn't have to manage locks.
 
 You define an atom like this (def my-atom (atom 1000))
-Creates an atom with an integer value of 1000.
+*Creates an atom with an integer value of 1000.*
 
 You reference the value of an atom using the @ operator, e.g. @my-atom.
 
