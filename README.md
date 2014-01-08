@@ -1,6 +1,6 @@
 # banking
 
-A Clojure concurrency exercise
+A Clojure concurrency exercise.
 
 Up and Running
 -------
