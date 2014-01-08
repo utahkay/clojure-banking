@@ -6,10 +6,11 @@ Up and Running
 -------
 * Install [Leiningen](http://leiningen.org/)
  * Put shell script/batch file somewhere on your path 
- * Run lein self-install
+ * At the command line, run **lein self-install**
 * Create new project
- * lein new banking
-* In the created banking folder there is a project.clj. Edit project.clj to add "test-refresh" plugin for continuous test.
+ * At the command line, run **lein new banking**
+* This will create a skeleton project in a new folder named banking. 
+* In the banking folder, find the file project.clj. Edit it to add the "test-refresh" plugin for continuous test. (So much easier and faster than running "lein test" over and over).
  * copy the :plugins line from here into your file. Watch the parentheses.
 
 ```clojure
