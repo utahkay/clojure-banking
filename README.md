@@ -50,10 +50,10 @@ Data structures in Clojure are immutable. We can't just set up an account "varia
 
 It's called an "atom" because any write to the data is atomic; that is, one thread will have exclusive access to the data whilst writing. The programmer doesn't have to manage locks.
 
-You define an atom like this (def my-atom (atom 1000))
+You define an atom like this (def my-atom (**atom** 1000))
 *Creates an atom with an integer value of 1000.*
 
-You reference the value of an atom using the @ operator, e.g. @my-atom.
+You reference the value of an atom using the **@** operator, e.g. @my-atom.
 
 You change the value of an atom by passing a function to **swap!** (swap! my-atom inc) 
 *Increments whatever value is in my-atom.*
@@ -355,10 +355,10 @@ This is when we need to carefully read the 4th paragraph at [Clojure concurrency
 
 Basically, use refs instead of atoms, and any (write) access to a ref MUST be within a transaction (dosync).
 
-You define a ref like this (def my-ref (ref 1000))
+You define a ref like this (def my-ref (**ref** 1000))
 *Creates a ref with an integer value of 1000.*
 
-You reference the value of a ref using the @ operator, e.g. @my-ref.
+You reference the value of a ref using the **@** operator, e.g. @my-ref.
 
 You change the value of a ref by passing a function to **alter** (alter my-ref inc) 
 *Increments whatever value is in my-ref.*
