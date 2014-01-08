@@ -355,6 +355,27 @@ This is when we need to carefully read the 4th paragraph at [Clojure concurrency
 
 Basically, use refs instead of atoms, and any (write) access to a ref MUST be within a transaction (dosync).
 
+You define a ref like this (def my-ref (ref 1000))
+*Creates a ref with an integer value of 1000.*
+
+You reference the value of a ref using the @ operator, e.g. @my-ref.
+
+You change the value of a ref by passing a function to **alter** (alter my-ref inc) 
+*Increments whatever value is in my-ref.*
+
+You can force a value into a ref by passing a value to **ref-set**, e.g. (ref-set my-ref 42).
+
+(Write) accesses to a ref MUST be within a transaction. You indicate a transaction like this:
+
+```clojure
+(dosync 
+  (do-stuff-here) 
+  (more-stuff-if-you-want)
+  ... )
+```
+
+See the docs for [refs](http://clojure.org/refs).
+
 OK, let's start changing our implementation to use refs. We can comment out our failing test for now:
 
 ```clojure
