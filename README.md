@@ -472,6 +472,10 @@ Refactor complete! Our tests are passing. Now we can uncomment that last test...
 
 And it passes! Cookies and milk all around!
 
+
+Conclusion
+-------
+
 Thank you @richhickey for providing such an elegant implementation of [STM](http://en.wikipedia.org/wiki/Software_transactional_memory) built into the language. 
 
 If you liked this exercise, why not try your hand at the [Sleeping Barber](http://en.wikipedia.org/wiki/Sleeping_barber_problem) concurrency problem? 
