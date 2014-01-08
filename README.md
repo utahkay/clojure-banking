@@ -10,7 +10,7 @@ Up and Running
 * Create new project
  * lein new banking
 * In the created banking folder there is a project.clj. Edit project.clj to add "test-refresh" plugin for continuous test.
- * add :plugins line as follows
+ * copy the :plugins line from here into your file. Watch the parentheses.
 
 ```clojure
 (defproject banking "0.1.0-SNAPSHOT"
