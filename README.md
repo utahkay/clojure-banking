@@ -55,7 +55,8 @@ You define an atom like this (def my-atom (atom 1000))
 
 You reference the value of an atom using the @ operator, e.g. @my-atom.
 
-You change the value of an atom by passing a function to **swap!**, e.g. (swap! my-atom inc) will increment whatever value is in my-atom. 
+You change the value of an atom by passing a function to **swap!** (swap! my-atom inc) 
+*Increments whatever value is in my-atom.*
 
 You can force a value into an atom by passing a value to **reset!**, e.g. (reset! my-atom 42).
 
