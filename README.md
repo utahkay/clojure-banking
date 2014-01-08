@@ -281,21 +281,17 @@ Can you implement it?
 ```
 
 
-We're rocking now. Naturally, we want to show off our excellent concurrency support. Let's write a parallel transfer test. If we create transactions that transfer an amount from checking to savings, and the same amount from savings to checking, we can do a whole bunch of these in parallel and in the end our balances should be the same as when we started. 
-
-Er, as long as we don't try to overdraw an account... in that case our transfer would do nothing, but the other transfer of the pair would succeed, and while the total of both our account balances would be consistent, our individual account balances would have changed. I have set the transfer amount to 2 and the number of "pairs" of transfers to $50, so we can't overdraw our initial balance of $100.
+We're rocking now. Naturally, we want to show off our excellent concurrency support. Let's write a parallel transfer test. We create transactions that transfer money between the accounts; in the end our total balance of both accounts should be the same as when we started. 
 
 ```clojure
 
 (deftest test-concurrent-transfers
   (doall (pmap #(do
-                  (dosync
-                    (transfer checking savings %)
-                    (transfer savings checking %)
-                  ))
-           (take 50 (repeat 2))))
-  (is (= 100 (balance savings)))
-  (is (= 100 (balance checking))))
+                  (transfer checking savings %)
+                  (transfer savings checking %)
+                  )
+           (take 100 (repeatedly #(rand-int 5)))))
+  (is (= 200 (+ (balance savings) (balance checking)))))
   
 ```
 
@@ -307,13 +303,13 @@ aargh once again I can't get the darn thing to fail. This needs work.
 
 (defn transfer [from to amount]
   (when (>= (balance from) amount)
-    (Thread/sleep 20)
+    (Thread/sleep 10)
     (debit from amount)
     (credit to amount)))
 
 ```
 
-Now the concurrency test is failing? WAIT WHAT HAPPENED???!!??? We were supposed to get concurrency for free. :-( :-( :-( Time to stop and think about this. Can you see why our implementation of transfer is unsafe?
+Failing test? Insufficient Funds Exception? WAIT WHAT HAPPENED???!!??? We were supposed to get concurrency for free. :-( :-( :-( Time to stop and think about this. Can you see why our implementation of transfer is unsafe?
 
 Hmmm....
 
@@ -336,13 +332,12 @@ OK, let's start changing our implementation to use refs. We can comment out our 
 
 ;(deftest test-concurrent-transfers
 ;  (doall (pmap #(do
-;                  (dosync
-;                    (transfer checking savings %)
-;                    (transfer savings checking %)
-;                  ))
-;           (take 50 (repeat 2))))
-;  (is (= 100 (balance savings)))
-;  (is (= 100 (balance checking))))
+;                  (transfer checking savings %)
+;                  (transfer savings checking %)
+;                  )
+;           (take 100 (repeatedly #(rand-int 5)))))
+;  (is (= 200 (+ (balance savings) (balance checking)))))
+
   
 ```
 
