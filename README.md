@@ -23,8 +23,8 @@ Up and Running
   :plugins [[com.jakemccrary/lein-test-refresh "0.1.2"]])
 ```
 
-* At the command line cd to your new project folder (banking)
-* lein test-refresh
+* At the command line, cd to your new project folder (banking), and run **lein test-refresh**
+ * This starts the continuous test plugin
  
 You should see 1 failing test. Leiningen generated a skeleton project for you with one sample (failing) test.
 
