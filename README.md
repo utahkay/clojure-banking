@@ -9,7 +9,7 @@ Up and Running
  * At the command line, run **lein self-install**
 * Create new project
  * At the command line, run **lein new banking**
-* This will create a skeleton project in a new folder named banking. 
+ * This will create a skeleton project in a new folder named banking. 
 * In the banking folder, find the file project.clj. Edit it to add the "test-refresh" plugin for continuous test. (So much easier and faster than running "lein test" over and over).
  * copy the :plugins line from here into your file. Watch the parentheses.
 
