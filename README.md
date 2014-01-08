@@ -480,3 +480,5 @@ Thank you @richhickey for providing such an elegant implementation of [STM](http
 
 If you liked this exercise, why not try your hand at the [Sleeping Barber](http://en.wikipedia.org/wiki/Sleeping_barber_problem) concurrency problem? 
 
+![alt text](http://clojure.org/space/showimage/clojure-icon.gif "Clojure")
+
