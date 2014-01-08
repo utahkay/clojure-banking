@@ -50,11 +50,18 @@ Data structures in Clojure are immutable. We can't just set up an account "varia
 
 It's called an "atom" because any write to the data is atomic; that is, one thread will have exclusive access to the data whilst writing. The programmer doesn't have to manage locks.
 
-You can reference the value of an atom using the @ operator, e.g. @my-atom.
+You define an atom like this (def my-atom (atom 1000))
+Creates an atom with an integer value of 1000.
 
-You can change the value of an atom by passing a function to **swap!**, e.g. (swap! my-atom inc) will increment whatever value is in my-atom (assuming it's an integer value). See the docs for  [atoms](http://clojure.org/atoms) and [swap!](http://clojuredocs.org/clojure_core/clojure.core/swap!).
+You reference the value of an atom using the @ operator, e.g. @my-atom.
 
-You define an atom as follows. Again, the underlying data structure can be any Clojure data structure; int, list, vector, map, etc. We'll make our bank accounts be ints, referring to the balance of the account:
+You change the value of an atom by passing a function to **swap!**, e.g. (swap! my-atom inc) will increment whatever value is in my-atom. 
+
+You can force a value into an atom by passing a value to **reset!**, e.g. (reset! my-atom 42).
+
+See the docs for [atoms](http://clojure.org/atoms).
+
+The underlying data structure can be any Clojure data structure; int, list, vector, map, etc. We'll make our bank account be an int, referring to the balance of the account:
 
 ```clojure
 
@@ -62,38 +69,48 @@ You define an atom as follows. Again, the underlying data structure can be any C
 
 ```
 
-Let's start simple, and test that the balance of our account is zero. 
+Let's start simple, and test that the balance of our account is zero. Tests are where? Under the test folder, naturally.
 
+We can replace the generated, failing test with our own test. The (ns) function at the top of the file is still good.
+
+``banking\test\banking\core_test.clj``
 ```clojure
+(ns banking.core-test
+  (:require [clojure.test :refer :all]
+            [banking2.core :refer :all]))
+            
+(def my-checking-account (atom 0))
 
 (deftest test-balance
-  (is (= 0 (balance checking))))
+  (is (= 0 (balance my-checking-account))))
   
 ```
 
-This won't run because we haven't defined the function "balance". See if you can define it.
+When we save the file, leiningen will run the tests. This won't run because we haven't defined the function "balance". See if you can define it. Source code goes where? Under the src folder. You can replace the auto-generated "foo" function.
 
 
 
 OK here's the answer:
 
+``banking\src\banking\core.clj``
 ```clojure
+(ns banking.core)
 
 (defn balance [account]
   @account)
   
 ```
 
-The parameter "account" is an atom, so we can reference its value using the @ operator.
+The parameter "account" is an atom, so we can reference its value using the @ operator. Now when we save, our test runs and passes.
 
-
-Let's test depositing money into an account. Let's call that function "credit." Credit will take as parameters the account, and the amount to deposit.
+Let's test depositing money into an account. Let's call that function "credit." Credit will take as parameters the account, and the amount to deposit. Back in ``core_test.clj``:
 
 ```clojure
+...
 
 (deftest test-credit
   (credit my-checking-account 60)
-  (is (= 60 (balance checking))))
+  (is (= 60 (balance my-checking-account))))
   
 ```
 
@@ -102,7 +119,9 @@ Knowing how to use swap!, can you define the function credit?
 
 Here's one way:
 
+``core.clj``
 ```clojure
+...
 
 (defn credit [account amount]
   (swap! account #(+ % amount)))
@@ -120,29 +139,9 @@ swap! allows a more elegant way to write this, however:
 
 ```
 
-Either way, the test should pass. Moving on to write the test for debit. 
+Either way, we now have **this** test passing, but the balance test is failing. The tests are using the same atom and interfering with each other.
 
-```clojure
-
-(deftest test-debit
-  (debit my-checking-account 100)
-  (is (= -100 (balance checking))))
-
-```
-
-Hmm, we probably shouldn't allow negative balances. But let's implement debit first. The implementation should be quite similar to credit.
-
-```clojure
-
-(defn debit [account amount]
-  (swap! account - amount))
-  
-```
-
-
-(Are the tests interfering with each other at this point?)
-
-It might be easier if we set up an account in a known state before each test. You can force a value into an atom using reset!, e.g. (reset! my-atom 5)
+We want to set up an account in a known state **before each test**. 
 
 Clojure-test support "fixtures" for test setup. Note: A fixture will apply to all tests in a namespace, or none. There are no classes in Clojure, so functions are organized by namespace.
 
@@ -164,17 +163,36 @@ Now we can update our tests to use the accounts created in setup. We can delete 
 
 ```clojure
 
+(deftest test-balance
+  (is (= 100 (balance checking))))
+  
 (deftest test-credit
   (credit checking 60)
   (is (= 160 (balance checking))))
 
-(deftest test-debit
-  (debit checking 100)
-  (is (= 0 (balance checking))))
-  
 ```
 
 Yay, our tests pass again!
+
+
+Moving on to write the test for debit. 
+
+```clojure
+
+(deftest test-debit
+  (debit checking 100)
+  (is (= 0 (balance checking))))
+
+```
+
+You can implement it. The implementation might be quite similar to credit....
+
+```clojure
+
+(defn debit [account amount]
+  (swap! account - amount))
+  
+```
 
 We shouldn't allow overdraft. Let's write a test that expects an exception if this happens:
 
@@ -186,7 +204,7 @@ We shouldn't allow overdraft. Let's write a test that expects an exception if th
         
 ```
 
-You can look up how to throw an exception in Clojure, and implement this behavior. 
+You can look up how to throw an exception in Clojure, and implement this behavior in the debit function. 
 
 Got it? Here's what I have:
 
@@ -251,8 +269,7 @@ That's pretty easy. Oh, but we don't want to allow the transfer if it would caus
   
 ```
 
-And the implementation? We have a balance function, perhaps we ought to compare the balance in the account with the amount we're trying to withdraw. Can you implement it?
-
+Can you implement it?
 
 ```clojure
 
@@ -282,9 +299,21 @@ Er, as long as we don't try to overdraw an account... in that case our transfer 
   
 ```
 
-This test.... fails?
+Looks great! Let's make it more realistic by adding some long-running operations inside our transfer function.
 
-WAIT WHAT HAPPENED???!!??? We were supposed to get concurrency for free. :-( :-( :-( Time to stop and think about this. Can you see why our implementation of transfer is unsafe?
+aargh once again I can't get the darn thing to fail. This needs work.
+
+```clojure
+
+(defn transfer [from to amount]
+  (when (>= (balance from) amount)
+    (Thread/sleep 20)
+    (debit from amount)
+    (credit to amount)))
+
+```
+
+Now the concurrency test is failing? WAIT WHAT HAPPENED???!!??? We were supposed to get concurrency for free. :-( :-( :-( Time to stop and think about this. Can you see why our implementation of transfer is unsafe?
 
 Hmmm....
 
