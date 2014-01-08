@@ -262,3 +262,37 @@ And the implementation? We have a balance function, perhaps we ought to compare 
     (credit to amount)))
     
 ```
+
+
+We're rocking now. Naturally, we want to show off our excellent concurrency support. Let's write a parallel transfer test. If we create transactions that transfer an amount from checking to savings, and the same amount from savings to checking, we can do a whole bunch of these in parallel and in the end our balances should be the same as when we started. 
+
+Er, as long as we don't try to overdraw an account... in that case our transfer would do nothing, but the other transfer of the pair would succeed, and while the total of both our account balances would be consistent, our individual account balances would have changed. I have set the transfer amount to 2 and the number of "pairs" of transfers to $50, so we can't overdraw our initial balance of $100.
+
+```clojure
+
+(deftest test-concurrent-transfers
+  (doall (pmap #(do
+                  (dosync
+                    (transfer checking savings %)
+                    (transfer savings checking %)
+                  ))
+           (take 50 (repeat 2))))
+  (is (= 100 (balance savings)))
+  (is (= 100 (balance checking))))
+  
+```
+
+WAIT WHAT HAPPENED???!!??? We were supposed to get concurrency for free. Time to stop and think about this. Can you see why our implementation of transfer is unsafe?
+
+Hmmm....
+
+Yes....
+
+That's right. Atoms protect us when we're synchronizing changes to **one** piece of data. Here we have **two** pieces of data that we need to keep mutually consistent. 
+
+Atoms aren't enough for this.
+
+We need TRANSACTIONS.
+
+Transactions
+-------
