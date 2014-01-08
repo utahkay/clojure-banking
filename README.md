@@ -24,3 +24,24 @@ Up and Running
 
 * At the command line cd to your new project folder (banking)
 * lein test-refresh
+
+
+The Problem
+-------
+
+Create functions to credit, debit, and transfer between bank accounts. They must not be vulnerable to race conditions.
+
+For example, if two threads try to credit the same account at the same time, the account balance must eventually be correctly incremented by BOTH credit amounts.
+
+Concurrency in Clojure
+-------
+
+Concurrency support is built into Clojure. This exercise will cover **atoms** and **refs**.
+
+* Atoms
+
+blah blah
+
+* Refs
+
+blah blah
