@@ -136,7 +136,6 @@ Here's one way:
 
 (defn credit [account amount]
   (swap! account #(+ % amount)))
-  
 ```
 
 We're passing swap! the account and an anonymous function that will add "amount" to whatever balance is currently in the atom.
@@ -144,10 +143,10 @@ We're passing swap! the account and an anonymous function that will add "amount"
 swap! allows a more elegant way to write this, however:
 
 ```clojure
+...
 
 (defn credit [account amount]
   (swap! account + amount))
-
 ```
 
 Either way, we now have **this** test passing, but the balance test is failing. The tests are using the same atom and interfering with each other.
@@ -157,7 +156,6 @@ We want to set up an account in a known state **before each test**.
 Clojure-test support "fixtures" for test setup. Note: A fixture will apply to all tests in a namespace, or none. There are no classes in Clojure, so functions are organized by namespace.
 
 ```clojure
-
 (def checking (atom 0))
 (def savings (atom 0))
 
@@ -168,11 +166,14 @@ Clojure-test support "fixtures" for test setup. Note: A fixture will apply to al
 
 (use-fixtures :each my-fixture)
 
+...
+
 ```
 
 Now we can update our tests to use the accounts created in setup. We can delete my-checking-account.
 
 ```clojure
+...
 
 (deftest test-balance
   (is (= 100 (balance checking))))
@@ -180,7 +181,6 @@ Now we can update our tests to use the accounts created in setup. We can delete 
 (deftest test-credit
   (credit checking 60)
   (is (= 160 (balance checking))))
-
 ```
 
 Yay, our tests pass again!
@@ -188,57 +188,59 @@ Yay, our tests pass again!
 We should pull those definitions out into a function, though, to make sure we're really getting fresh accounts before each test. Let's change 
 
 ```clojure
-
 (def checking (atom 0))
 (def savings (atom 0))
 
+...
 ```
 
 to
 
 ```clojure
-
 (def checking (make-account))
 (def savings (make-account))
 
+...
 ```
 
 and define make-account in the source file:
 
 ```clojure
-
 (defn make-account []
   (atom 0))
   
+...
 ```
 
 OK. Good. Moving on to write the test for debit. 
 
 ```clojure
+...
 
 (deftest test-debit
   (debit checking 100)
   (is (= 0 (balance checking))))
-
 ```
 
 You can implement debit. You can use the credit function we just wrote.... oh, don't peek ahead, you can do this!
 
 ```clojure
+...
 
 (defn debit [account amount]
   (credit account (- amount)))
-  
 ```
 
-We shouldn't allow overdraft. Let's write a test that expects an exception if this happens:
+Tests pass.
+
+We shouldn't allow overdraft. Let's expect an exception:
 
 ```clojure
+...
 
 (deftest test-overdraw-exception
   (is (thrown? Exception
         (debit checking 101))))
-        
 ```
 
 You can look up how to throw an exception in Clojure, and implement this behavior in the debit function. 
@@ -246,12 +248,12 @@ You can look up how to throw an exception in Clojure, and implement this behavio
 Got it? Here's what I have:
 
 ```clojure
+...
 
 (defn debit [account amount]
   (when (> amount (balance account))
     (throw (Exception. "Insufficient Funds")))
   (credit account (- amount)))
-  
 ```
 
 Now I want to demonstrate that we have gotten our concurrency for free, just by using an atom. Here's a test that credits our checking account with $6 and debits it $5, doing this 100 times. Thus we're $1 ahead each time, so after all is said and done our account balance should be $100 greater than when we started. (Hopefully this is how we manage our moeny in real life...)
@@ -277,50 +279,53 @@ Transfers
 Let's get to the fun part! Writing the test for transfer:
 
 ```clojure
+...
 
 (deftest test-transfer
   (transfer savings checking 25)
   (is (= 75 (balance savings)))
   (is (= 125  (balance checking))))
-  
 ```
 
-We don't have a transfer function. Can you write it in terms of debit and credit?
+Can you write transfer in terms of debit and credit?
 
 ```clojure
+...
 
 (defn transfer [from to amount]
   (debit from amount)
   (credit to amount))
-  
 ```
 
-That's pretty easy. Oh, but we don't want to allow the transfer if it would cause an overdraft. Let's have it just do nothing in that case.
+We don't want to allow the transfer if it would cause an overdraft.
 
 ```clojure
+...
 
 (deftest test-no-transfer-if-overdrawn
   (transfer checking savings 101)
   (is (= 100 (balance savings)))
   (is (= 100 (balance checking))))
-  
 ```
 
 Can you implement it?
 
 ```clojure
+...
 
 (defn transfer [from to amount]
   (when (>= (balance from) amount)
     (debit from amount)
     (credit to amount)))
-    
 ```
 
 
-We're rocking now. Naturally, we want to show off our excellent concurrency support. Let's write a parallel transfer test. We create transactions that transfer money between the accounts; in the end our total balance of both accounts should be the same as when we started. 
+We're rocking now. 
+
+Naturally, we want to show off our excellent concurrency support. Let's write a parallel transfer test. We create transactions that transfer money between the accounts; in the end our total balance of both accounts should be the same as when we started. 
 
 ```clojure
+...
 
 (deftest test-concurrent-transfers
   (doall (pmap #(do
@@ -329,7 +334,6 @@ We're rocking now. Naturally, we want to show off our excellent concurrency supp
                   )
            (take 100 (repeatedly #(rand-int 5)))))
   (is (= 200 (+ (balance savings) (balance checking)))))
-  
 ```
 
 Looks great! Let's make it more realistic by adding some long-running operations inside our transfer function.
@@ -337,13 +341,13 @@ Looks great! Let's make it more realistic by adding some long-running operations
 aargh once again I can't get the darn thing to fail. This needs work.
 
 ```clojure
+...
 
 (defn transfer [from to amount]
   (when (>= (balance from) amount)
     (Thread/sleep 10)
     (debit from amount)
     (credit to amount)))
-
 ```
 
 Failing test? Insufficient Funds Exception? WAIT WHAT HAPPENED???!!??? We were supposed to get concurrency for free. :-( :-( :-( Time to stop and think about this. Can you see why our implementation of transfer is unsafe?
