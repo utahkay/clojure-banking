@@ -3,15 +3,18 @@
 A Clojure concurrency exercise.
 
 Up and Running
--------
-* Install **[Leiningen](http://leiningen.org/)**
- * Put shell script/batch file somewhere on your path 
- * At the command line, run **lein self-install**
-* Create new project
- * At the command line, run **lein new banking**
- * This will create a skeleton project in a new folder named banking. 
-* In the banking folder, find the file project.clj. Edit it to add the "test-refresh" plugin for continuous test. (So much easier and faster than running "lein test" over and over).
- * copy the :plugins line from here into your file. Watch the parentheses.
+------------
+
+You have Clojure (Leiningen) [installed](https://github.com/technomancy/leiningen/blob/stable/README.md)
+
+Create a new project
+
+```bash
+%> lein new banking
+%> cd banking
+```
+
+To run tests add plugin ``lein-test-refresh`` by adding ``:plugins`` to ``project.clj``:
 
 ```clojure
 (defproject banking "0.1.0-SNAPSHOT"
@@ -23,14 +26,17 @@ Up and Running
   :plugins [[com.jakemccrary/lein-test-refresh "0.1.2"]])
 ```
 
-* At the command line, cd to your new project folder (banking), and run **lein test-refresh**
- * This starts the continuous test plugin
- 
-You should see 1 failing test. Leiningen generated a skeleton project for you with one sample (failing) test.
+Now we run our tests
 
-* **Editor**
- * You could use any text editor, but LightTable is pretty easy and has good Clojure syntax highlighting
- * You can get LightTable [here](http://www.lighttable.com/)
+```bash
+%> lein test-refresh
+```
+
+You should see the dummy test fail..
+
+Editor: You may like [LightTable](http://www.lighttable.com/) but you can use any editor for this exercise.
+  
+Clojure [cheat sheet](http://clojure.org/cheatsheet) 
 
 The Banker's Dilemma
 -------
