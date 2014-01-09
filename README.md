@@ -102,9 +102,6 @@ When we save the file, leiningen will run the tests. This won't run because we h
 Source code goes where? Under the src folder. You can replace the auto-generated "foo" function.
 
 
-
-OK here's the answer:
-
 ``banking\src\banking\core.clj``
 ```clojure
 (ns banking.core)
