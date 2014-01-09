@@ -5,7 +5,7 @@ A Clojure concurrency exercise.
 Up and Running
 ------------
 
-You have Clojure (Leiningen) [installed](https://github.com/technomancy/leiningen/blob/stable/README.md)
+You have Leiningen [installed](https://github.com/technomancy/leiningen/blob/stable/README.md)
 
 Create a new project
 
