@@ -332,13 +332,11 @@ Naturally, we want to show off our excellent concurrency support. Let's write a 
                   (transfer checking savings %)
                   (transfer savings checking %)
                   )
-           (take 100 (repeatedly #(rand-int 5)))))
+           (take 100 (repeatedly #(rand-int 25)))))
   (is (= 200 (+ (balance savings) (balance checking)))))
 ```
 
 Looks great! Let's make it more realistic by adding some long-running operations inside our transfer function.
-
-aargh once again I can't get the darn thing to fail. This needs work.
 
 ```clojure
 ...
@@ -393,16 +391,15 @@ See the docs for [refs](http://clojure.org/refs).
 OK, let's start changing our implementation to use refs. We can comment out our failing test for now:
 
 ```clojure
+...
 
 ;(deftest test-concurrent-transfers
 ;  (doall (pmap #(do
 ;                  (transfer checking savings %)
 ;                  (transfer savings checking %)
 ;                  )
-;           (take 100 (repeatedly #(rand-int 5)))))
+;           (take 100 (repeatedly #(rand-int 25)))))
 ;  (is (= 200 (+ (balance savings) (balance checking)))))
-
-  
 ```
 
 First we change make-account to return a ref
@@ -437,6 +434,7 @@ And in our tests, we need to change reset! to ref-set. Those Frenchmen, they hav
 Now we get an java.lang.IllegalStateException: No transaction running. This is what we expected. We know refs can only be accessed within transactions. We'll make each of our three functions, credit, debit, and transfer, be a transaction.
 
 ```clojure
+...
 
 (defn credit [account amount]
   (dosync
@@ -460,27 +458,27 @@ Now we get an java.lang.IllegalStateException: No transaction running. This is w
 Ah yes, we also have to put the test initialization inside a transaction. Aren't stack traces helpful?
 
 ```clojure
-
 (defn my-fixture [f]
   (dosync
     (ref-set checking 100)
     (ref-set savings 100))
   (f))
-
+  
+...
 ```
 
 Refactor complete! Our tests are passing. Now we can uncomment that last test...
 
 ```clojure
+...
 
 (deftest test-concurrent-transfers
   (doall (pmap #(do
                   (transfer checking savings %)
                   (transfer savings checking %)
                   )
-           (take 100 (repeatedly #(rand-int 5)))))
+           (take 100 (repeatedly #(rand-int 25)))))
   (is (= 200 (+ (balance savings) (balance checking)))))
-  
 ```
 
 And it passes! Cookies and milk all around!
