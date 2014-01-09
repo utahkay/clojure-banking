@@ -50,7 +50,7 @@ Concurrency in Clojure
 
 Concurrency support is built into Clojure. This exercise will cover **atoms** and **refs**.
 
-It would be great if I had time to write about concurrency here. For now, just see [Clojure concurrency](http://clojure.org/concurrent_programming)
+You can have a look at [Clojure concurrency](http://clojure.org/concurrent_programming)
 
 
 Withdrawals and deposits
@@ -80,9 +80,9 @@ The underlying data structure can be any Clojure data structure; int, list, vect
 
 ```
 
-Let's start simple, and test that the balance of our account is zero. Tests are where? Under the test folder, naturally.
+We have an account; let's test that its balance is zero. Tests are where? Under the test folder, naturally.
 
-We can replace the generated, failing test with our own test. The (ns) function at the top of the file is still good.
+We can replace the generated, failing test with our own test. The namespace (ns) function at the top of the file is still good.
 
 ``banking\test\banking\core_test.clj``
 ```clojure
@@ -97,7 +97,9 @@ We can replace the generated, failing test with our own test. The (ns) function 
   
 ```
 
-When we save the file, leiningen will run the tests. This won't run because we haven't defined the function "balance". See if you can define it. Source code goes where? Under the src folder. You can replace the auto-generated "foo" function.
+When we save the file, leiningen will run the tests. This won't run because we haven't defined the function "balance". See if you can define it. 
+
+Source code goes where? Under the src folder. You can replace the auto-generated "foo" function.
 
 
 
@@ -112,9 +114,11 @@ OK here's the answer:
   
 ```
 
-The parameter "account" is an atom, so we can reference its value using the @ operator. Now when we save, our test runs and passes.
+The parameter "account" is an atom, so we reference its value using the @ operator. 
 
-Let's test depositing money into an account. Let's call that function "credit." Credit will take as parameters the account, and the amount to deposit. Back in ``core_test.clj``:
+Now when we save, our test runs and passes.
+
+How about depositing money into an account? Back in ``core_test.clj``:
 
 ```clojure
 ...
@@ -140,16 +144,7 @@ Here's one way:
 
 We're passing swap! the account and an anonymous function that will add "amount" to whatever balance is currently in the atom.
 
-swap! allows a more elegant way to write this, however:
-
-```clojure
-...
-
-(defn credit [account amount]
-  (swap! account + amount))
-```
-
-Either way, we now have **this** test passing, but the balance test is failing. The tests are using the same atom and interfering with each other.
+This test passes, but we've broken our first test. It seems the tests are using the same atom and interfering with each other.
 
 We want to set up an account in a known state **before each test**. 
 
@@ -212,7 +207,16 @@ and define make-account in the source file:
 ...
 ```
 
-OK. Good. Moving on to write the test for debit. 
+OK. Good. Any more refactors? The credit function could look a little prettier. swap! allows a more elegant syntax:
+
+```clojure
+...
+
+(defn credit [account amount]
+  (swap! account + amount))
+```
+
+Moving on to write the test for debit. 
 
 ```clojure
 ...
@@ -222,7 +226,7 @@ OK. Good. Moving on to write the test for debit.
   (is (= 0 (balance checking))))
 ```
 
-You can implement debit. You can use the credit function we just wrote.... oh, don't peek ahead, you can do this!
+To implement debit, we could use the credit function we just wrote....
 
 ```clojure
 ...
