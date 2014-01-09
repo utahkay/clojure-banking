@@ -88,7 +88,7 @@ We can replace the generated, failing test with our own test. The namespace (ns)
 ```clojure
 (ns banking.core-test
   (:require [clojure.test :refer :all]
-            [banking2.core :refer :all]))
+            [banking.core :refer :all]))
             
 (def my-checking-account (atom 0))
 
